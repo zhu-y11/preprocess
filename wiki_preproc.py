@@ -3,7 +3,7 @@
 """
 Preprocessing wiki text
 @Author Yi Zhu
-Upated  26/11/2017
+Upated  30/11/2017
 """
 
 #************************************************************
@@ -15,13 +15,22 @@ import argparse
 from tqdm import tqdm
 import string
 
+"""
 import polyglot
 from polyglot.text import Text, Word
 from polyglot.tokenize import SentenceTokenizer
 from polyglot.base import Sequence
+"""
+
+from nltk.tokenize import sent_tokenize
+from nltk.tokenize.moses import MosesTokenizer
+
+from lang_map import lang_map
 
 
 def main(args):
+  full_lang = args.lang
+  lang = lang_map[full_lang]
   for root, dirs, files in tqdm(os.walk(args.input_dir), total = len(os.listdir(args.input_dir))):
     for file_name in tqdm(files, total = len(os.listdir(root))):
       # input file
@@ -43,16 +52,14 @@ def main(args):
           pars = [par.strip() for par in pars if par.strip()][1:]
           new_pars = []
           for par in pars:
-            par_seq = Sequence(par)
-            st = SentenceTokenizer(locale = args.lang)
-            sents = [sent for sent in st.transform(par_seq)]
+            sents = sentSegment(par, full_lang)
             new_sents = []
             for sent in sents:
               try:
-                sent = Text(sent, hint_language_code = args.lang)
-                words = sent.words
+                words = wordTokenize(sent, lang)
               except:
                 continue
+              # delete punctuations
               words = [word for word in words if word not in string.punctuation]
               # delete sentence with only one word
               if len(words) <= 1:
@@ -68,6 +75,17 @@ def main(args):
             continue
           new_doc = '\n\n'.join(new_pars)
           f1.write(new_doc + '\n' * 5)
+
+
+def sentSegment(par, lang):
+  sents = sent_tokenize(par, lang)
+  return sents
+
+
+def wordTokenize(sent, lang):
+  tokenizer = MosesTokenizer(lang)
+  words = tokenizer.tokenize(sent, escape = False)
+  return words
 
 
 def repMultiDigits(tok_text):

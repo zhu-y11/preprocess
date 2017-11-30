@@ -16,7 +16,7 @@ import os
 
 def main(args):
   conv2SentSplit(args)
-  conv2DocSplit(args)
+  #conv2DocSplit(args)
   
 
 def conv2SentSplit(args):
