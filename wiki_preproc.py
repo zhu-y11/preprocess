@@ -15,12 +15,10 @@ import argparse
 from tqdm import tqdm
 import string
 
-"""
 import polyglot
 from polyglot.text import Text, Word
 from polyglot.tokenize import SentenceTokenizer
 from polyglot.base import Sequence
-"""
 
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize.moses import MosesTokenizer
@@ -53,12 +51,11 @@ def main(args):
           new_pars = []
           for par in pars:
             sents = sentSegment(par, full_lang)
+            if not sents:
+              continue
             new_sents = []
             for sent in sents:
-              try:
-                words = wordTokenize(sent, lang)
-              except:
-                continue
+              words = wordTokenize(sent, lang)
               # delete punctuations
               words = [word for word in words if word not in string.punctuation]
               # delete sentence with only one word
@@ -78,7 +75,15 @@ def main(args):
 
 
 def sentSegment(par, lang):
-  sents = sent_tokenize(par, lang)
+  try:
+    sents = sent_tokenize(par, lang)
+  except:
+    try:
+      par_seq = Sequence(par)
+      st = SentenceTokenizer(locale = lang)
+      sents = [sent for sent in st.transform(par_seq)]
+    except:
+      return None
   return sents
 
 
