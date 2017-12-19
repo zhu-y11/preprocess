@@ -29,6 +29,7 @@ from lang_map import lang_map
 def main(args):
   full_lang = args.lang
   lang = lang_map[full_lang]
+  tokenizer = MosesTokenizer(lang)
   for root, dirs, files in tqdm(os.walk(args.input_dir), total = len(os.listdir(args.input_dir))):
     for file_name in tqdm(files, total = len(os.listdir(root))):
       # input file
@@ -55,7 +56,7 @@ def main(args):
               continue
             new_sents = []
             for sent in sents:
-              words = wordTokenize(sent, lang)
+              words = wordTokenize(sent, tokenizer)
               # delete punctuations
               words = [word for word in words if word not in string.punctuation]
               # delete sentence with only one word
@@ -68,7 +69,7 @@ def main(args):
             if not new_sents:
               continue
             new_pars.append('\n'.join(new_sents))
-          if not new_sents:
+          if not new_pars:
             continue
           new_doc = '\n\n'.join(new_pars)
           f1.write(new_doc + '\n' * 5)
@@ -80,15 +81,14 @@ def sentSegment(par, lang):
   except:
     try:
       par_seq = Sequence(par)
-      st = SentenceTokenizer(locale = lang)
+      st = SentenceTokenizer(locale = lang_map[lang])
       sents = [sent for sent in st.transform(par_seq)]
     except:
       return None
   return sents
 
 
-def wordTokenize(sent, lang):
-  tokenizer = MosesTokenizer(lang)
+def wordTokenize(sent, tokenizer):
   words = tokenizer.tokenize(sent, escape = False)
   return words
 
